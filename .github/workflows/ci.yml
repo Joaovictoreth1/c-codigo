@@ -1,0 +1,22 @@
+name: C# checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build --configuration Release
+      - name: Check console output
+        shell: bash
+        run: |
+          output=$(printf ' ana \n' | dotnet run --no-build --configuration Release)
+          [[ "$output" == *'- Pedro'* && "$output" != *'- Ana'* ]]
+          output=$(printf 'Zoe\n' | dotnet run --no-build --configuration Release)
+          [[ "$output" == *'Aluno não encontrado.'* && "$output" == *'- Ana'* ]]
+          output=$(dotnet run --no-build --configuration Release </dev/null)
+          [[ "$output" == *'Nenhum nome informado.'* && "$output" == *'- Ana'* ]]
